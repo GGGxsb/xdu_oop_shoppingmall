@@ -3,4 +3,4 @@ project(oopshoppoing)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(oopshoppoing main.cpp administrator.cpp customer.cpp fileio.cpp product.cpp shopping_cart.cpp)
+add_executable(oopshoppoing main.cpp administrator.cpp customer.cpp product.cpp shopping_cart.cpp)
