@@ -1,0 +1,14 @@
+# ninja log v6
+5	472	7659801919058759	CMakeFiles/oopshoppoing.dir/main.cpp.obj	28addf3c343494b6
+19	614	7659789636577975	CMakeFiles/oopshoppoing.dir/fileio.cpp.obj	d3b6deb11d7f1e76
+9	537	7659801919098816	CMakeFiles/oopshoppoing.dir/administrator.cpp.obj	3c6b0d83af7f5497
+538	697	7659801924385958	oopshoppoing.exe	104df35d12b21b4e
+8	368	7659790436673501	CMakeFiles/oopshoppoing.dir/shop.cpp.obj	1e01c00b6a1a404
+47	913	7659831716954250	build.ninja	317e9fd0b419e166
+13	538	7659801919139441	CMakeFiles/oopshoppoing.dir/customer.cpp.obj	41a5043ecacb9cff
+4	419	7659790436638397	CMakeFiles/oopshoppoing.dir/product.cpp.obj	d94b1b215bc291c2
+1	386	7659831716954250	build.ninja	317e9fd0b419e166
+26	588	7659831718075534	CMakeFiles/oopshoppoing.dir/shopping_cart.cpp.obj	3665e60a94edfe41
+23	605	7659831718040468	CMakeFiles/oopshoppoing.dir/product.cpp.obj	d94b1b215bc291c2
+4	426	7659832400973973	CMakeFiles/oopshoppoing.dir/main.cpp.obj	28addf3c343494b6
+426	730	7659832405205806	oopshoppoing.exe	83fc513daa2ce9e5
