@@ -1,6 +1,3 @@
-//
-// Created by 86189 on 25-4-10.
-//
 #include "products.h"
 #include <fstream>
 #include <sstream>
@@ -63,4 +60,32 @@ void ProductManager::loadFromFile() {
         }
         infile.close();
     }
+}
+std::vector<Product> ProductManager::queryProductByName(const std::string& targetName)  {
+    std::vector<Product> result;
+    for (const auto& product : products) {
+        if (product.name == targetName) {
+            result.push_back(product);
+        }
+    }
+    return result;
+}
+std::vector<Product> ProductManager::queryProductByFuzzyName(const std::string& keyword) {
+    std::vector<Product> result;
+    for (const auto& product : products) {
+        if (product.name.find(keyword) != std::string::npos) {
+            result.push_back(product);
+        }
+    }
+    return result;
+}
+bool ProductManager::deleteProduct(const std::string& targetName) {
+    for (auto it = products.begin(); it != products.end(); ++it) {
+        if (it->name == targetName) {
+            products.erase(it);
+            saveToFile();
+            return true;
+        }
+    }
+    return false;
 }

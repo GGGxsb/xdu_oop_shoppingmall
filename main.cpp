@@ -22,23 +22,29 @@ int main() {
             std::cout << "1. 管理员登录\n"
                          "2. 顾客注册\n"
                          "3. 顾客登录\n"
-                         "4. 查询商品信息\n"
-                         "5. 退出系统\n"
+                         "4. 精确查询商品信息\n"
+                         "5. 模糊查询商品信息\n"
+                         "6. 查看商品列表\n"
+                         "7. 退出系统\n"
                          "请选择: ";
         } else if (adminLoggedIn) {
             std::cout << "1. 商品上架\n"
                          "2. 删除顾客账号\n"
                          "3. 重置顾客密码\n"
-                         "4. 退出管理员操作\n"
-                         "5. 退出系统\n"
+                         "4. 精确查询商品信息\n"
+                         "5. 模糊查询商品信息\n"
+                         "6. 删除商品信息\n"
+                         "7. 退出管理员操作\n"
+                         "8. 退出系统\n"
                          "请选择: ";
         } else if (customerLoggedIn) {
             std::cout << "1. 修改顾客密码\n"
-                         "2. 查询商品信息\n"
-                         "3. 将商品加入购物车\n"
-                         "4. 购买购物车商品\n"
-                         "5. 退出顾客登录\n"
-                         "6. 退出系统\n"
+                         "2. 精确查询商品信息\n"
+                         "3. 模糊查询商品信息\n"
+                         "4. 将商品加入购物车\n"
+                         "5. 购买购物车商品\n"
+                         "6. 退出顾客登录\n"
+                         "7. 退出系统\n"
                          "请选择: ";
         }
 
@@ -115,12 +121,15 @@ int main() {
                         std::cout << "未找到该顾客账号或删除失败" << std::endl;
                     }
                 } else if (customerLoggedIn) {
-                    const auto& products = productManager.getProducts();
-                    if (products.empty()) {
-                        std::cout << "暂无商品信息。" << std::endl;
+                    std::string targetName;
+                    std::cout << "请输入要精确查询的商品名称: ";
+                    std::cin >> targetName;
+                    auto foundProducts = productManager.queryProductByName(targetName);
+                    if (foundProducts.empty()) {
+                        std::cout << "未找到该商品。" << std::endl;
                     } else {
-                        for (size_t i = 0; i < products.size(); ++i) {
-                            std::cout << i + 1 << ". " << products[i].name << " - " << products[i].price << " 元，库存: " << products[i].stock << std::endl;
+                        for (const auto& product : foundProducts) {
+                            std::cout << "商品名称: " << product.name << " - " << product.price << " 元，库存: " << product.stock << std::endl;
                         }
                     }
                 }
@@ -163,6 +172,46 @@ int main() {
                             break;
                     }
                 } else if (customerLoggedIn) {
+                    std::string keyword;
+                    std::cout << "请输入要模糊查询的关键字: ";
+                    std::cin >> keyword;
+                    auto foundProducts = productManager.queryProductByFuzzyName(keyword);
+                    if (foundProducts.empty()) {
+                        std::cout << "未找到包含该关键字的商品。" << std::endl;
+                    } else {
+                        for (const auto& product : foundProducts) {
+                            std::cout << "商品名称: " << product.name << " - " << product.price << " 元，库存: " << product.stock << std::endl;
+                        }
+                    }
+                }
+                break;
+            }
+            case 4: {
+                if (!adminLoggedIn && !customerLoggedIn) {
+                    std::string targetName;
+                    std::cout << "请输入要精确查询的商品名称: ";
+                    std::cin >> targetName;
+                    auto foundProducts = productManager.queryProductByName(targetName);
+                    if (foundProducts.empty()) {
+                        std::cout << "未找到该商品。" << std::endl;
+                    } else {
+                        for (const auto& product : foundProducts) {
+                            std::cout << "商品名称: " << product.name << " - " << product.price << " 元，库存: " << product.stock << std::endl;
+                        }
+                    }
+                } else if (adminLoggedIn) {
+                    std::string targetName;
+                    std::cout << "请输入要精确查询的商品名称: ";
+                    std::cin >> targetName;
+                    auto foundProducts = productManager.queryProductByName(targetName);
+                    if (foundProducts.empty()) {
+                        std::cout << "未找到该商品。" << std::endl;
+                    } else {
+                        for (const auto& product : foundProducts) {
+                            std::cout << "商品名称: " << product.name << " - " << product.price << " 元，库存: " << product.stock << std::endl;
+                        }
+                    }
+                } else if (customerLoggedIn) {
                     const auto& products = productManager.getProducts();
                     if (products.empty()) {
                         std::cout << "暂无商品可供选择。" << std::endl;
@@ -182,7 +231,21 @@ int main() {
                 }
                 break;
             }
-            case 4: {
+            case 5: {
+                std::string keyword;
+                std::cout << "请输入要模糊查询的关键字: ";
+                std::cin >> keyword;
+                auto foundProducts = productManager.queryProductByFuzzyName(keyword);
+                if (foundProducts.empty()) {
+                    std::cout << "未找到包含该关键字的商品。" << std::endl;
+                } else {
+                    for (const auto& product : foundProducts) {
+                        std::cout << "商品名称: " << product.name << " - " << product.price << " 元，库存: " << product.stock << std::endl;
+                    }
+                }
+                break;
+            }
+            case 6: {
                 if (!adminLoggedIn && !customerLoggedIn) {
                     const auto& products = productManager.getProducts();
                     if (products.empty()) {
@@ -193,28 +256,35 @@ int main() {
                         }
                     }
                 } else if (adminLoggedIn) {
-                    std::cout << "退出管理员操作" << std::endl;
-                    adminLoggedIn = false;
-                } else if (customerLoggedIn) {
-                    shoppingCart.purchase();
-                }
-                break;
-            }
-            case 5: {
-                if (!adminLoggedIn && !customerLoggedIn) {
-                    std::cout << "已退出系统" << std::endl;
-                    exit = 1;
-                } else if (adminLoggedIn) {
-                    std::cout << "已退出系统" << std::endl;
-                    exit = 1;
+                    std::string targetName;
+                    std::cout << "请输入要删除的商品名称: ";
+                    std::cin >> targetName;
+                    if (productManager.deleteProduct(targetName)) {
+                        std::cout << "商品删除成功" << std::endl;
+                    } else {
+                        std::cout << "未找到该商品，删除失败" << std::endl;
+                    }
                 } else if (customerLoggedIn) {
                     std::cout << "退出顾客登录" << std::endl;
                     customerLoggedIn = false;
                 }
                 break;
             }
-            case 6: {
-                if (customerLoggedIn) {
+            case 7: {
+                if (!adminLoggedIn && !customerLoggedIn) {
+                    std::cout << "已退出系统" << std::endl;
+                    exit = 1;
+                } else if (adminLoggedIn) {
+                    std::cout << "退出管理员操作" << std::endl;
+                    adminLoggedIn = false;
+                } else if (customerLoggedIn) {
+                    std::cout << "已退出系统" << std::endl;
+                    exit = 1;
+                }
+                break;
+            }
+            case 8: {
+                if (adminLoggedIn) {
                     std::cout << "已退出系统" << std::endl;
                     exit = 1;
                 }

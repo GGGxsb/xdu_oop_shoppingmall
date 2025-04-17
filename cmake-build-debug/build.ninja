@@ -67,12 +67,6 @@ build CMakeFiles/oopshoppoing.dir/customer.cpp.obj: CXX_COMPILER__oopshoppoing_u
   OBJECT_DIR = CMakeFiles\oopshoppoing.dir
   OBJECT_FILE_DIR = CMakeFiles\oopshoppoing.dir
 
-build CMakeFiles/oopshoppoing.dir/fileio.cpp.obj: CXX_COMPILER__oopshoppoing_unscanned_Debug D$:/oopshoppoing/fileio.cpp || cmake_object_order_depends_target_oopshoppoing
-  DEP_FILE = CMakeFiles\oopshoppoing.dir\fileio.cpp.obj.d
-  FLAGS = -g -fdiagnostics-color=always
-  OBJECT_DIR = CMakeFiles\oopshoppoing.dir
-  OBJECT_FILE_DIR = CMakeFiles\oopshoppoing.dir
-
 build CMakeFiles/oopshoppoing.dir/product.cpp.obj: CXX_COMPILER__oopshoppoing_unscanned_Debug D$:/oopshoppoing/product.cpp || cmake_object_order_depends_target_oopshoppoing
   DEP_FILE = CMakeFiles\oopshoppoing.dir\product.cpp.obj.d
   FLAGS = -g -fdiagnostics-color=always
@@ -93,7 +87,7 @@ build CMakeFiles/oopshoppoing.dir/shopping_cart.cpp.obj: CXX_COMPILER__oopshoppo
 #############################################
 # Link the executable oopshoppoing.exe
 
-build oopshoppoing.exe: CXX_EXECUTABLE_LINKER__oopshoppoing_Debug CMakeFiles/oopshoppoing.dir/main.cpp.obj CMakeFiles/oopshoppoing.dir/administrator.cpp.obj CMakeFiles/oopshoppoing.dir/customer.cpp.obj CMakeFiles/oopshoppoing.dir/fileio.cpp.obj CMakeFiles/oopshoppoing.dir/product.cpp.obj CMakeFiles/oopshoppoing.dir/shopping_cart.cpp.obj
+build oopshoppoing.exe: CXX_EXECUTABLE_LINKER__oopshoppoing_Debug CMakeFiles/oopshoppoing.dir/main.cpp.obj CMakeFiles/oopshoppoing.dir/administrator.cpp.obj CMakeFiles/oopshoppoing.dir/customer.cpp.obj CMakeFiles/oopshoppoing.dir/product.cpp.obj CMakeFiles/oopshoppoing.dir/shopping_cart.cpp.obj
   FLAGS = -g
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\oopshoppoing.dir

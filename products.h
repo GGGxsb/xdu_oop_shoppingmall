@@ -28,6 +28,9 @@ public:
     void addProduct(const std::string& name, double price, int stock);
     const std::vector<Product>& getProducts() const;
     bool decreaseStock(const std::string& productName, int quantity);
+    std::vector<Product> queryProductByName(const std::string& targetName);
+    std::vector<Product> queryProductByFuzzyName(const std::string& keyword);
+    bool deleteProduct(const std::string& targetName);
 };
 
 #endif
