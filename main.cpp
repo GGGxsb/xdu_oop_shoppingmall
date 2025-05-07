@@ -5,12 +5,11 @@
 #include "shop.h"
 
 int main() {
-    // 预设管理员账号密码
+    // 预定义管理员账号密码
     Administrator admin("admin", "admin123");
 
-    Customer customer;
     ProductManager productManager;
-    ShoppingCart shoppingCart(productManager);
+    Customer customer(productManager);
 
     int choice;
     int exit = 0;
@@ -34,17 +33,20 @@ int main() {
                          "4. 精确查询商品信息\n"
                          "5. 模糊查询商品信息\n"
                          "6. 删除商品信息\n"
-                         "7. 退出管理员操作\n"
+                         "7. 退出管理员登录\n"
                          "8. 退出系统\n"
                          "请选择: ";
         } else if (customerLoggedIn) {
             std::cout << "1. 修改顾客密码\n"
                          "2. 精确查询商品信息\n"
                          "3. 模糊查询商品信息\n"
-                         "4. 将商品加入购物车\n"
-                         "5. 购买购物车商品\n"
-                         "6. 退出顾客登录\n"
-                         "7. 退出系统\n"
+                         "4. 添加商品到购物车\n"
+                         "5. 删除购物车中的商品\n"
+                         "6. 修改购物车中商品的购买数量\n"
+                         "7. 查询购物车内的商品信息\n"
+                         "8. 购买购物车中的商品\n"
+                         "9. 退出顾客登录\n"
+                         "10. 退出系统\n"
                          "请选择: ";
         }
 
@@ -76,7 +78,7 @@ int main() {
                     productManager.addProduct(name, price, stock);
                 } else if (customerLoggedIn) {
                     std::string targetAccount, oldPassword, newPassword;
-                    std::cout << "请输入要修改密码的账户: ";
+                    std::cout << "请输入要修改密码的账号: ";
                     std::cin >> targetAccount;
                     std::cout << "请输入旧密码: ";
                     std::cin >> oldPassword;
@@ -88,7 +90,7 @@ int main() {
                             std::cout << "密码修改成功" << std::endl;
                             break;
                         case 1:
-                            std::cout << "账户名不存在，密码修改失败" << std::endl;
+                            std::cout << "账号不存在，密码修改失败" << std::endl;
                             break;
                         case 2:
                             std::cout << "旧密码错误，密码修改失败" << std::endl;
@@ -129,7 +131,7 @@ int main() {
                         std::cout << "未找到该商品。" << std::endl;
                     } else {
                         for (const auto& product : foundProducts) {
-                            std::cout << "商品名称: " << product.name << " - " << product.price << " 元，库存: " << product.stock << std::endl;
+                            std::cout << "商品名称: " << product.name << " - " << product.price << " 元 - 库存: " << product.stock << std::endl;
                         }
                     }
                 }
@@ -162,7 +164,7 @@ int main() {
                             std::cout << "密码重置成功" << std::endl;
                             break;
                         case 1:
-                            std::cout << "账户名不存在，密码重置失败" << std::endl;
+                            std::cout << "账号不存在，密码重置失败" << std::endl;
                             break;
                         case 2:
                             std::cout << "旧密码错误，密码重置失败" << std::endl;
@@ -180,7 +182,7 @@ int main() {
                         std::cout << "未找到包含该关键字的商品。" << std::endl;
                     } else {
                         for (const auto& product : foundProducts) {
-                            std::cout << "商品名称: " << product.name << " - " << product.price << " 元，库存: " << product.stock << std::endl;
+                            std::cout << "商品名称: " << product.name << " - " << product.price << " 元 - 库存: " << product.stock << std::endl;
                         }
                     }
                 }
@@ -196,7 +198,7 @@ int main() {
                         std::cout << "未找到该商品。" << std::endl;
                     } else {
                         for (const auto& product : foundProducts) {
-                            std::cout << "商品名称: " << product.name << " - " << product.price << " 元，库存: " << product.stock << std::endl;
+                            std::cout << "商品名称: " << product.name << " - " << product.price << " 元 - 库存: " << product.stock << std::endl;
                         }
                     }
                 } else if (adminLoggedIn) {
@@ -208,51 +210,60 @@ int main() {
                         std::cout << "未找到该商品。" << std::endl;
                     } else {
                         for (const auto& product : foundProducts) {
-                            std::cout << "商品名称: " << product.name << " - " << product.price << " 元，库存: " << product.stock << std::endl;
+                            std::cout << "商品名称: " << product.name << " - " << product.price << " 元 - 库存: " << product.stock << std::endl;
                         }
                     }
                 } else if (customerLoggedIn) {
-                    const auto& products = productManager.getProducts();
-                    if (products.empty()) {
-                        std::cout << "暂无商品可供选择。" << std::endl;
-                    } else {
-                        for (size_t i = 0; i < products.size(); ++i) {
-                            std::cout << i + 1 << ". " << products[i].name << " - " << products[i].price << " 元，库存: " << products[i].stock << std::endl;
-                        }
-                        int productIndex;
-                        std::cout << "请输入要加入购物车的商品编号: ";
-                        std::cin >> productIndex;
-                        if (productIndex >= 1 && productIndex <= static_cast<int>(products.size())) {
-                            shoppingCart.addToCart(products[productIndex - 1]);
-                        } else {
-                            std::cout << "无效的商品编号。" << std::endl;
-                        }
-                    }
+                    std::string productName;
+                    int quantity;
+                    std::cout << "请输入要添加到购物车的商品名称: ";
+                    std::cin >> productName;
+                    std::cout << "请输入要添加的商品数量: ";
+                    std::cin >> quantity;
+                    customer.addToCart(productName, quantity);
                 }
                 break;
             }
             case 5: {
-                std::string keyword;
-                std::cout << "请输入要模糊查询的关键字: ";
-                std::cin >> keyword;
-                auto foundProducts = productManager.queryProductByFuzzyName(keyword);
-                if (foundProducts.empty()) {
-                    std::cout << "未找到包含该关键字的商品。" << std::endl;
-                } else {
-                    for (const auto& product : foundProducts) {
-                        std::cout << "商品名称: " << product.name << " - " << product.price << " 元，库存: " << product.stock << std::endl;
+                if (customerLoggedIn) {
+                    std::string productName;
+                    int quantity;
+                    std::cout << "请输入要从购物车中删除的商品名称: ";
+                    std::cin >> productName;
+                    std::cout << "请输入要删除的商品数量: ";
+                    std::cin >> quantity;
+                    customer.removeFromCart(productName, quantity);
+                } else if (!adminLoggedIn && !customerLoggedIn) {
+                    std::string keyword;
+                    std::cout << "请输入要模糊查询的关键字: ";
+                    std::cin >> keyword;
+                    auto foundProducts = productManager.queryProductByFuzzyName(keyword);
+                    if (foundProducts.empty()) {
+                        std::cout << "未找到包含该关键字的商品。" << std::endl;
+                    } else {
+                        for (const auto& product : foundProducts) {
+                            std::cout << "商品名称: " << product.name << " - " << product.price << " 元 - 库存: " << product.stock << std::endl;
+                        }
                     }
                 }
                 break;
             }
             case 6: {
-                if (!adminLoggedIn && !customerLoggedIn) {
+                if (customerLoggedIn) {
+                    std::string productName;
+                    int newQuantity;
+                    std::cout << "请输入要修改购买数量的商品名称: ";
+                    std::cin >> productName;
+                    std::cout << "请输入新的购买数量: ";
+                    std::cin >> newQuantity;
+                    customer.modifyQuantity(productName, newQuantity);
+                } else if (!adminLoggedIn && !customerLoggedIn) {
                     const auto& products = productManager.getProducts();
                     if (products.empty()) {
                         std::cout << "暂无商品信息。" << std::endl;
                     } else {
                         for (size_t i = 0; i < products.size(); ++i) {
-                            std::cout << i + 1 << ". " << products[i].name << " - " << products[i].price << " 元，库存: " << products[i].stock << std::endl;
+                            std::cout << i + 1 << ". " << products[i].name << " - " << products[i].price << " 元 - 库存: " << products[i].stock << std::endl;
                         }
                     }
                 } else if (adminLoggedIn) {
@@ -262,30 +273,42 @@ int main() {
                     if (productManager.deleteProduct(targetName)) {
                         std::cout << "商品删除成功" << std::endl;
                     } else {
-                        std::cout << "未找到该商品，删除失败" << std::endl;
+                        std::cout << "未找到该商品或删除失败" << std::endl;
                     }
-                } else if (customerLoggedIn) {
+                }
+                break;
+            }
+            case 7: {
+                if (customerLoggedIn) {
+                    customer.queryCartInfo();
+                } else if (!adminLoggedIn && !customerLoggedIn) {
+                    std::cout << "退出系统" << std::endl;
+                    exit = 1;
+                } else if (adminLoggedIn) {
+                    std::cout << "退出管理员登录" << std::endl;
+                    adminLoggedIn = false;
+                }
+                break;
+            }
+            case 8: {
+                if (customerLoggedIn) {
+                    customer.purchase();
+                } else if (adminLoggedIn) {
+                    std::cout << "退出系统" << std::endl;
+                    exit = 1;
+                }
+                break;
+            }
+            case 9: {
+                if (customerLoggedIn) {
                     std::cout << "退出顾客登录" << std::endl;
                     customerLoggedIn = false;
                 }
                 break;
             }
-            case 7: {
-                if (!adminLoggedIn && !customerLoggedIn) {
-                    std::cout << "已退出系统" << std::endl;
-                    exit = 1;
-                } else if (adminLoggedIn) {
-                    std::cout << "退出管理员操作" << std::endl;
-                    adminLoggedIn = false;
-                } else if (customerLoggedIn) {
-                    std::cout << "已退出系统" << std::endl;
-                    exit = 1;
-                }
-                break;
-            }
-            case 8: {
-                if (adminLoggedIn) {
-                    std::cout << "已退出系统" << std::endl;
+            case 10: {
+                if (customerLoggedIn) {
+                    std::cout << "退出系统" << std::endl;
                     exit = 1;
                 }
                 break;

@@ -2,13 +2,17 @@
 // Created by 86189 on 25-4-10.
 //
 // customer.cpp
+//
+// Created by 86189 on 25-4-10.
+//
+// customer.cpp
 #include "customer.h"
 #include <fstream>
 #include <sstream>
 #include <vector>
 #include <iostream>
 
-Customer::Customer() : isLoggedIn(false) {}
+//Customer::Customer(ProductManager& pm) : isLoggedIn(false), shoppingCart(pm), productManager(pm) {}
 
 void Customer::registerCustomer(const std::string& acc, const std::string& pwd, const std::string& n) {
     account = acc;
@@ -73,8 +77,8 @@ int Customer::changePassword(const std::string& targetAccount, const std::string
 
     std::ofstream outfile("customers.txt");
     if (outfile.is_open()) {
-        for (const auto& l : lines) {
-            outfile << l << std::endl;
+        for (std::vector<std::string>::const_iterator it = lines.begin(); it != lines.end(); ++it) {
+            outfile << *it << std::endl;
         }
         outfile.close();
     } else {
@@ -98,8 +102,45 @@ void Customer::queryShoppingInfo() {
 
 void Customer::purchase() {
     if (isLoggedIn) {
-        std::cout << "模拟购买成功！" << std::endl;
+        shoppingCart.purchase();
     } else {
         std::cout << "您尚未登录，请先登录再进行购买。" << std::endl;
+    }
+}
+
+void Customer::addToCart(const std::string& productName, int quantity) {
+    if (isLoggedIn) {
+        std::vector<Product> products = productManager.queryProductByName(productName);
+        if (!products.empty()) {
+            shoppingCart.addToCart(products[0], quantity);
+        } else {
+            std::cout << "未找到商品 " << productName << "。" << std::endl;
+        }
+    } else {
+        std::cout << "您尚未登录，请先登录再操作购物车。" << std::endl;
+    }
+}
+
+void Customer::removeFromCart(const std::string& productName, int quantity) {
+    if (isLoggedIn) {
+        shoppingCart.removeFromCart(productName, quantity);
+    } else {
+        std::cout << "您尚未登录，请先登录再操作购物车。" << std::endl;
+    }
+}
+
+void Customer::modifyQuantity(const std::string& productName, int newQuantity) {
+    if (isLoggedIn) {
+        shoppingCart.modifyQuantity(productName, newQuantity);
+    } else {
+        std::cout << "您尚未登录，请先登录再操作购物车。" << std::endl;
+    }
+}
+
+void Customer::queryCartInfo() {
+    if (isLoggedIn) {
+        shoppingCart.queryCartInfo();
+    } else {
+        std::cout << "您尚未登录，请先登录再操作购物车。" << std::endl;
     }
 }

@@ -6,18 +6,92 @@
 #include <fstream>
 #include <ctime>
 
-void ShoppingCart::addToCart(const Product& product) {
-    if (product.stock > 0) {
-        items.push_back(product);
-        std::cout << "å•†å“ " << product.name << " å·²åŠ å…¥è´­ç‰©è½¦ã€‚" << std::endl;
-    } else {
-        std::cout << "å•†å“ " << product.name << " åº“å­˜ä¸è¶³ï¼Œæ— æ³•åŠ å…¥è´­ç‰©è½¦ã€‚" << std::endl;
+void ShoppingCart::addToCart(const Product& product, int quantity) {
+    for (auto& item : items) {
+        if (item.product.name == product.name) {
+            std::cout << "ÉÌÆ· " << product.name << " ÒÑ´æÔÚÓÚ¹ºÎï³µÖÐ¡£ÊÇ·ñÈÔÒª¼ÓÈë£¿(y/n): ";
+            char choice;
+            std::cin >> choice;
+            if (choice == 'y' || choice == 'Y') {
+                if (product.stock >= item.quantity + quantity) {
+                    item.quantity += quantity;
+                    std::cout << "ÉÌÆ· " << product.name << " µÄ¹ºÂòÊýÁ¿ÒÑ¸üÐÂÎª " << item.quantity << "¡£" << std::endl;
+                } else {
+                    std::cout << "ÉÌÆ· " << product.name << " ¿â´æ²»×ã£¬ÎÞ·¨Ôö¼Ó¹ºÂòÊýÁ¿¡£" << std::endl;
+                }
+            }
+            return;
+        }
     }
+    if (product.stock >= quantity) {
+        items.emplace_back(product, quantity);
+        std::cout << "ÉÌÆ· " << product.name << " ÒÑ¼ÓÈë¹ºÎï³µ£¬ÊýÁ¿Îª " << quantity << "¡£" << std::endl;
+    } else {
+        std::cout << "ÉÌÆ· " << product.name << " ¿â´æ²»×ã£¬ÎÞ·¨¼ÓÈë¹ºÎï³µ¡£" << std::endl;
+    }
+}
+
+bool ShoppingCart::removeFromCart(const std::string& productName, int quantity) {
+    for (auto it = items.begin(); it != items.end(); ++it) {
+        if (it->product.name == productName) {
+            if (it->quantity <= quantity) {
+                items.erase(it);
+                std::cout << "ÉÌÆ· " << productName << " ÒÑ´Ó¹ºÎï³µÖÐÉ¾³ý¡£" << std::endl;
+            } else {
+                it->quantity -= quantity;
+                std::cout << "ÉÌÆ· " << productName << " µÄ¹ºÂòÊýÁ¿ÒÑ¼õÉÙÎª " << it->quantity << "¡£" << std::endl;
+            }
+            return true;
+        }
+    }
+    std::cout << "Î´ÕÒµ½ÉÌÆ· " << productName << "£¬ÎÞ·¨É¾³ý¡£" << std::endl;
+    return false;
+}
+
+bool ShoppingCart::modifyQuantity(const std::string& productName, int newQuantity) {
+    for (auto& item : items) {
+        if (item.product.name == productName) {
+            if (newQuantity == 0) {
+                std::cout << "ÊÇ·ñÒªÉ¾³ýÉÌÆ· " << productName << "£¿(y/n): ";
+                char choice;
+                std::cin >> choice;
+                if (choice == 'y' || choice == 'Y') {
+                    removeFromCart(productName, item.quantity);
+                    return true;
+                }
+            } else if (item.product.stock >= newQuantity) {
+                item.quantity = newQuantity;
+                std::cout << "ÉÌÆ· " << productName << " µÄ¹ºÂòÊýÁ¿ÒÑ¸üÐÂÎª " << newQuantity << "¡£" << std::endl;
+                return true;
+            } else {
+                std::cout << "ÉÌÆ· " << productName << " ¿â´æ²»×ã£¬ÎÞ·¨ÐÞ¸Ä¹ºÂòÊýÁ¿¡£" << std::endl;
+            }
+            return false;
+        }
+    }
+    std::cout << "Î´ÕÒµ½ÉÌÆ· " << productName << "£¬ÎÞ·¨ÐÞ¸ÄÊýÁ¿¡£" << std::endl;
+    return false;
+}
+
+void ShoppingCart::queryCartInfo() {
+    if (items.empty()) {
+        std::cout << "¹ºÎï³µÎª¿Õ¡£" << std::endl;
+        return;
+    }
+    int totalQuantity = 0;
+    double totalPrice = 0;
+    std::cout << "¹ºÎï³µÖÐµÄÉÌÆ·ÐÅÏ¢£º" << std::endl;
+    for (const auto& item : items) {
+        std::cout << "ÉÌÆ·Ãû³Æ: " << item.product.name << " - ¼Û¸ñ: " << item.product.price << " Ôª - ÊýÁ¿: " << item.quantity << std::endl;
+        totalQuantity += item.quantity;
+        totalPrice += item.product.price * item.quantity;
+    }
+    std::cout << "ÉÌÆ·×ÜÊý: " << totalQuantity << "£¬×Ü¼Û¸ñ: " << totalPrice << " Ôª¡£" << std::endl;
 }
 
 bool ShoppingCart::purchase() {
     if (items.empty()) {
-        std::cout << "è´­ç‰©è½¦ä¸ºç©ºï¼Œæ— æ³•è´­ä¹°ã€‚" << std::endl;
+        std::cout << "¹ºÎï³µÎª¿Õ£¬ÎÞ·¨¹ºÂò¡£" << std::endl;
         return false;
     }
     double total = 0;
@@ -25,23 +99,23 @@ bool ShoppingCart::purchase() {
     if (logFile.is_open()) {
         std::time_t now = std::time(nullptr);
         char* dt = std::ctime(&now);
-        logFile << "è´­ä¹°æ—¶é—´: " << dt;
+        logFile << "¹ºÂòÊ±¼ä: " << dt;
         for (const auto& item : items) {
-            if (!productManager.decreaseStock(item.name, 1)) {
-                std::cout << "å•†å“ " << item.name << " åº“å­˜ä¸è¶³ï¼Œè´­ä¹°å¤±è´¥ã€‚" << std::endl;
+            if (!productManager.decreaseStock(item.product.name, item.quantity)) {
+                std::cout << "ÉÌÆ· " << item.product.name << " ¿â´æ²»×ã£¬¹ºÂòÊ§°Ü¡£" << std::endl;
                 return false;
             }
-            total += item.price;
-            logFile << "å•†å“åç§°: " << item.name << ", ä»·æ ¼: " << item.price << ", æ•°é‡: 1" << std::endl;
+            total += item.product.price * item.quantity;
+            logFile << "ÉÌÆ·Ãû³Æ: " << item.product.name << ", ¼Û¸ñ: " << item.product.price << ", ÊýÁ¿: " << item.quantity << std::endl;
         }
-        logFile << "æ€»é‡‘é¢: " << total << std::endl;
+        logFile << "×Ü½ð¶î: " << total << std::endl;
         logFile << "------------------------" << std::endl;
         logFile.close();
     } else {
-        std::cerr << "æ— æ³•æ‰“å¼€è´­ä¹°è®°å½•æ–‡ä»¶ã€‚" << std::endl;
+        std::cerr << "ÎÞ·¨´ò¿ª¹ºÂò¼ÇÂ¼ÎÄ¼þ¡£" << std::endl;
         return false;
     }
-    std::cout << "è´­ä¹°æˆåŠŸï¼æ€»é‡‘é¢: " << total << " å…ƒã€‚" << std::endl;
+    std::cout << "¹ºÂò³É¹¦£¡×Ü½ð¶î: " << total << " Ôª¡£" << std::endl;
     items.clear();
     return true;
 }
