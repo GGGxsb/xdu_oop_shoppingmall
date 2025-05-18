@@ -7,12 +7,120 @@
 //
 // customer.cpp
 #include "customer.h"
+#include "shop.h"
+#include "order.h"
 #include <fstream>
+#include <iomanip>
 #include <sstream>
 #include <vector>
 #include <iostream>
+#include <stdexcept>
 
-//Customer::Customer(ProductManager& pm) : isLoggedIn(false), shoppingCart(pm), productManager(pm) {}
+std::vector<Order> Customer::orders;
+
+void Customer::loadOrdersFromFile() {
+    std::ifstream infile("orders.txt");
+    if (infile.is_open()) {
+        std::string line;
+        while (std::getline(infile, line)) {
+            try {
+                std::string orderId = line;
+
+                // ¶ÁÈ¡ÉÌÆ·ÊýÁ¿
+                std::getline(infile, line);
+                if (line.empty()) throw std::invalid_argument("ÉÌÆ·ÊýÁ¿Îª¿Õ");
+                int itemCount = std::stoi(line);
+
+                std::vector<CartItem> items;
+                for (int i = 0; i < itemCount; ++i) {
+                    // ¶ÁÈ¡ÉÌÆ·ÐÅÏ¢
+                    std::getline(infile, line);
+                    std::stringstream ss(line);
+                    std::string productName;
+                    double price;
+                    int quantity;
+
+                    // ½âÎöÉÌÆ·Ãû³Æ¡¢¼Û¸ñ¡¢ÊýÁ¿
+                    if (!std::getline(ss, productName, ',')) throw std::invalid_argument("ÉÌÆ·Ãû³ÆÎÞÐ§");
+                    if (!(ss >> price)) throw std::invalid_argument("ÉÌÆ·¼Û¸ñÎÞÐ§");
+                    ss.ignore();
+                    if (!(ss >> quantity)) throw std::invalid_argument("ÉÌÆ·ÊýÁ¿ÎÞÐ§");
+
+                    Product product(productName, price, 0);
+                    items.emplace_back(product, quantity);
+                }
+
+                // ¶ÁÈ¡Ê±¼ä´Á
+                std::getline(infile, line);
+                if (line.empty()) throw std::invalid_argument("Ê±¼ä´ÁÎª¿Õ");
+                std::time_t purchaseTime = std::stol(line);
+
+                // ¶ÁÈ¡×Ü¼Û
+                std::getline(infile, line);
+                if (line.empty()) throw std::invalid_argument("×Ü¼ÛÎª¿Õ");
+                double totalPrice = std::stod(line);
+
+                // ¶ÁÈ¡µØÖ·
+                std::getline(infile, line);
+                std::string shippingAddress = line;
+
+                // ¶ÁÈ¡¶©µ¥×´Ì¬
+                std::getline(infile, line);
+                if (line.empty()) throw std::invalid_argument("¶©µ¥×´Ì¬Îª¿Õ");
+                int statusValue = std::stoi(line);
+                if (statusValue < 0 || statusValue > 2) throw std::invalid_argument("¶©µ¥×´Ì¬ÎÞÐ§");
+                OrderStatus status = static_cast<OrderStatus>(statusValue);
+
+                // ´´½¨¶©µ¥
+                Order order(orderId, items, shippingAddress);
+                order.purchaseTime = purchaseTime;
+                order.totalPrice = totalPrice;
+                order.status = status;
+                orders.push_back(order);
+
+            } catch (const std::invalid_argument& e) {
+                std::cerr << "¶©µ¥½âÎöÊ§°Ü: " << e.what() << std::endl;
+                // Ìø¹ýËð»µµÄ¶©µ¥Êý¾Ý
+                infile.close();
+                return;
+            }
+        }
+        infile.close();
+    }
+}
+// ±£´æ¶©µ¥µ½ÎÄ¼þ
+void Customer::saveOrdersToFile() {
+    std::ofstream outfile("orders.txt");
+    if (outfile.is_open()) {
+        for (const auto& order : orders) {
+            // ±£´æ¶©µ¥ID
+            outfile << order.orderId << std::endl;
+
+            // ±£´æÉÌÆ·ÊýÁ¿
+            outfile << order.items.size() << std::endl;
+
+            // ±£´æÃ¿¸öÉÌÆ·
+            for (const auto& item : order.items) {
+                outfile << item.product.name << ","
+                        << item.product.price << ","
+                        << item.quantity << std::endl;
+            }
+
+            // ±£´æ¹ºÂòÊ±¼ä
+            outfile << order.purchaseTime << std::endl;
+
+            // ±£´æ×Ü¼Û
+            outfile << order.totalPrice << std::endl;
+
+            // ±£´æÊÕ»õµØÖ·
+            outfile << order.shippingAddress << std::endl;
+
+            // ±£´æ¶©µ¥×´Ì¬
+            outfile << static_cast<int>(order.status) << std::endl;
+        }
+        outfile.close();
+    }
+}
 
 void Customer::registerCustomer(const std::string& acc, const std::string& pwd, const std::string& n) {
     account = acc;
@@ -23,7 +131,7 @@ void Customer::registerCustomer(const std::string& acc, const std::string& pwd, 
         outfile << account << "," << password << "," << name << std::endl;
         outfile.close();
     } else {
-        std::cerr << "æ— æ³•æ‰“å¼€æ–‡ä»¶ä¿å­˜é¡¾å®¢ä¿¡æ¯" << std::endl;
+        std::cerr << "ÎÞ·¨´ò¿ªÎÄ¼þ±£´æ¹Ë¿ÍÐÅÏ¢" << std::endl;
     }
 }
 
@@ -63,7 +171,7 @@ int Customer::changePassword(const std::string& targetAccount, const std::string
                     continue;
                 } else {
                     infile.close();
-                    return 2; // å¯†ç é”™è¯¯
+                    return 2; // ÃÜÂë´íÎó
                 }
             }
             lines.push_back(line);
@@ -72,7 +180,7 @@ int Customer::changePassword(const std::string& targetAccount, const std::string
     infile.close();
 
     if (!found) {
-        return 1; // è´¦æˆ·åä¸å­˜åœ¨
+        return 1; // ÕË»§Ãû²»´æÔÚ
     }
 
     std::ofstream outfile("customers.txt");
@@ -82,9 +190,9 @@ int Customer::changePassword(const std::string& targetAccount, const std::string
         }
         outfile.close();
     } else {
-        return -1; // æ–‡ä»¶æ“ä½œå¤±è´¥
+        return -1; // ÎÄ¼þ²Ù×÷Ê§°Ü
     }
-    return 0; // ä¿®æ”¹æˆåŠŸ
+    return 0; // ÐÞ¸Ä³É¹¦
 }
 
 void Customer::queryShoppingInfo() {
@@ -96,15 +204,39 @@ void Customer::queryShoppingInfo() {
         }
         infile.close();
     } else {
-        std::cerr << "æ— æ³•æ‰“å¼€æ–‡ä»¶æŸ¥è¯¢è´­ç‰©ä¿¡æ¯" << std::endl;
+        std::cerr << "ÎÞ·¨´ò¿ªÎÄ¼þ²éÑ¯¹ºÎïÐÅÏ¢" << std::endl;
     }
 }
 
-void Customer::purchase() {
+// void Customer::purchase(const std::string& shippingAddress) {
+//     if (isLoggedIn) {
+//         if (shoppingCart.purchase(shippingAddress)) {
+//             // ´´½¨¶©µ¥²¢Ìí¼Óµ½ÓÃ»§¶©µ¥ÁÐ±í
+//             std::stringstream ss;
+//             std::time_t now = std::time(nullptr);
+//             ss << "ORD" << std::put_time(std::localtime(&now), "%Y%m%d%H%M%S");
+//             std::string orderId = ss.str();
+//             Order order(orderId, shoppingCart.getItems(), shippingAddress);
+//
+//             // Ìí¼Ó¶©µ¥µ½¾²Ì¬ÁÐ±í²¢±£´æµ½ÎÄ¼þ
+//             addOrder(order);
+//             saveOrdersToFile();
+//         }
+//     } else {
+//         std::cout << "ÄúÎ´µÇÂ¼£¬ÇëÏÈµÇÂ¼ÔÙ½øÐÐ¹ºÂò" << std::endl;
+//     }
+// }
+
+void Customer::purchase(const std::string& shippingAddress) {
     if (isLoggedIn) {
-        shoppingCart.purchase();
+        Order order = shoppingCart.purchase(shippingAddress);
+        if (!order.orderId.empty()) { // ¼ì²é¶©µ¥ÓÐÐ§ÐÔ
+            addOrder(order);
+            saveOrdersToFile(); // ±£´æ¶©µ¥
+            std::cout << "¶©µ¥Éú³É³É¹¦£¬±àºÅ: " << order.orderId << std::endl;
+        }
     } else {
-        std::cout << "æ‚¨å°šæœªç™»å½•ï¼Œè¯·å…ˆç™»å½•å†è¿›è¡Œè´­ä¹°ã€‚" << std::endl;
+        std::cout << "ÄúÎ´µÇÂ¼£¬ÇëÏÈµÇÂ¼ÔÙ½øÐÐ¹ºÂò" << std::endl;
     }
 }
 
@@ -114,10 +246,10 @@ void Customer::addToCart(const std::string& productName, int quantity) {
         if (!products.empty()) {
             shoppingCart.addToCart(products[0], quantity);
         } else {
-            std::cout << "æœªæ‰¾åˆ°å•†å“ " << productName << "ã€‚" << std::endl;
+            std::cout << "Î´ÕÒµ½ÉÌÆ· " << productName << "¡£" << std::endl;
         }
     } else {
-        std::cout << "æ‚¨å°šæœªç™»å½•ï¼Œè¯·å…ˆç™»å½•å†æ“ä½œè´­ç‰©è½¦ã€‚" << std::endl;
+        std::cout << "ÄúÉÐÎ´µÇÂ¼£¬ÇëÏÈµÇÂ¼ÔÙ²Ù×÷¹ºÎï³µ¡£" << std::endl;
     }
 }
 
@@ -125,7 +257,7 @@ void Customer::removeFromCart(const std::string& productName, int quantity) {
     if (isLoggedIn) {
         shoppingCart.removeFromCart(productName, quantity);
     } else {
-        std::cout << "æ‚¨å°šæœªç™»å½•ï¼Œè¯·å…ˆç™»å½•å†æ“ä½œè´­ç‰©è½¦ã€‚" << std::endl;
+        std::cout << "ÄúÉÐÎ´µÇÂ¼£¬ÇëÏÈµÇÂ¼ÔÙ²Ù×÷¹ºÎï³µ¡£" << std::endl;
     }
 }
 
@@ -133,7 +265,7 @@ void Customer::modifyQuantity(const std::string& productName, int newQuantity) {
     if (isLoggedIn) {
         shoppingCart.modifyQuantity(productName, newQuantity);
     } else {
-        std::cout << "æ‚¨å°šæœªç™»å½•ï¼Œè¯·å…ˆç™»å½•å†æ“ä½œè´­ç‰©è½¦ã€‚" << std::endl;
+        std::cout << "ÄúÉÐÎ´µÇÂ¼£¬ÇëÏÈµÇÂ¼ÔÙ²Ù×÷¹ºÎï³µ¡£" << std::endl;
     }
 }
 
@@ -141,6 +273,104 @@ void Customer::queryCartInfo() {
     if (isLoggedIn) {
         shoppingCart.queryCartInfo();
     } else {
-        std::cout << "æ‚¨å°šæœªç™»å½•ï¼Œè¯·å…ˆç™»å½•å†æ“ä½œè´­ç‰©è½¦ã€‚" << std::endl;
+        std::cout << "ÄúÉÐÎ´µÇÂ¼£¬ÇëÏÈµÇÂ¼ÔÙ²Ù×÷¹ºÎï³µ¡£" << std::endl;
     }
+}
+
+void Customer::queryOrders() {
+    if (isLoggedIn) {
+        if (orders.empty()) {
+            std::cout << "ÄúÃ»ÓÐÈÎºÎ¶©µ¥¡£" << std::endl;
+        } else {
+            for (const auto& order : orders) {
+                std::cout << "¶©µ¥±àºÅ: " << order.orderId << std::endl;
+                std::cout << "ÏÂµ¥Ê±¼ä: " << std::ctime(&order.purchaseTime);
+                std::cout << "¶©µ¥×Ü¼Û: " <<order.totalPrice << " Ôª" << std::endl;
+                // for (const auto& item : items) {
+                //     order.totalPrice += item.product.price * item.quantity;
+                // }
+                std::cout << "ÊÕ»õµØÖ·: " << order.shippingAddress << std::endl;
+                std::cout << "¶©µ¥×´Ì¬: ";
+                switch (order.status) {
+                    case PENDING_SHIPMENT:
+                        std::cout << "´ý·¢»õ" << std::endl;
+                        break;
+                    case SHIPPED:
+                        std::cout << "ÒÑ·¢»õ" << std::endl;
+                        break;
+                    case RECEIVED:
+                        std::cout << "ÒÑÊÕ»õ" << std::endl;
+                        break;
+                }
+                std::cout << "¶©µ¥ÉÌÆ·ÐÅÏ¢:" << std::endl;
+                for (const auto& item : order.items) {
+                    std::cout << "  ÉÌÆ·Ãû³Æ: " << item.product.name << " - ¼Û¸ñ: " << item.product.price << " Ôª - ÊýÁ¿: " << item.quantity << std::endl;
+                }
+                std::cout << "------------------------" << std::endl;
+            }
+        }
+    } else {
+        std::cout << "ÄúÎ´µÇÂ¼£¬ÇëÏÈµÇÂ¼ÔÙ²éÑ¯¶©µ¥¡£" << std::endl;
+    }
+}
+
+bool Customer::modifyOrder(const std::string& orderId, const std::string& action, const std::string& newAddress) {
+    if (isLoggedIn) {
+        for (auto& order : orders) {
+            if (order.orderId == orderId) {
+                if (order.status == PENDING_SHIPMENT) {
+                    if (action == "cancel") {
+                        // È¡Ïû¶©µ¥£¬¸üÐÂÉÌÆ·¿â´æ
+                        for (const auto& item : order.items) {
+                            productManager.increaseStock(item.product.name, item.quantity);
+                        }
+                        order.status = RECEIVED; // ±ê¼ÇÎªÒÑÈ¡Ïû
+                        std::cout << "¶©µ¥ " << orderId << " ÒÑÈ¡Ïû¡£" << std::endl;
+                        saveOrdersToFile(); // ±£´æÐÞ¸Ä
+                        return true;
+                    } else if (action == "change_address") {
+                        order.shippingAddress = newAddress;
+                        std::cout << "¶©µ¥ " << orderId << " µÄÊÕ»õµØÖ·ÒÑ¸üÐÂÎª: " << newAddress << std::endl;
+                        saveOrdersToFile(); // ±£´æÐÞ¸Ä
+                        return true;
+                    }
+                } else {
+                    std::cout << "Ö»ÓÐ´ý·¢»õ×´Ì¬µÄ¶©µ¥¿ÉÒÔÐÞ¸Ä¡£" << std::endl;
+                    return false;
+                }
+            }
+        }
+        std::cout << "Î´ÕÒµ½¶©µ¥ " << orderId << "¡£" << std::endl;
+        return false;
+    } else {
+        std::cout << "ÄúÎ´µÇÂ¼£¬ÇëÏÈµÇÂ¼ÔÙÐÞ¸Ä¶©µ¥¡£" << std::endl;
+        return false;
+    }
+}
+
+bool Customer::deleteOrder(const std::string& orderId) {
+    if (isLoggedIn) {
+        for (auto it = orders.begin(); it != orders.end(); ++it) {
+            if (it->orderId == orderId) {
+                if (it->status == RECEIVED) {
+                    orders.erase(it);
+                    std::cout << "¶©µ¥ " << orderId << " ÒÑÉ¾³ý¡£" << std::endl;
+                    saveOrdersToFile(); // ±£´æÐÞ¸Ä
+                    return true;
+                } else {
+                    std::cout << "Ö»ÓÐÒÑÊÕ»õ×´Ì¬µÄ¶©µ¥¿ÉÒÔÉ¾³ý¡£" << std::endl;
+                    return false;
+                }
+            }
+        }
+        std::cout << "Î´ÕÒµ½¶©µ¥ " << orderId << "¡£" << std::endl;
+        return false;
+    } else {
+        std::cout << "ÄúÎ´µÇÂ¼£¬ÇëÏÈµÇÂ¼ÔÙÉ¾³ý¶©µ¥¡£" << std::endl;
+        return false;
+    }
+}
+
+void Customer::addOrder(const Order& order) {
+    orders.push_back(order);
 }

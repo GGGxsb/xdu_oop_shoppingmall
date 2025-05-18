@@ -1,3 +1,4 @@
+
 #include "administrator.h"
 #include <fstream>
 #include <sstream>
@@ -56,7 +57,7 @@ int Administrator::resetCustomerPassword(const std::string& targetAccount, const
                     continue;
                 } else {
                     infile.close();
-                    return 2; // 瀵嗙爜閿欒
+                    return 2; // 密码错误
                 }
             }
             lines.push_back(line);
@@ -65,7 +66,7 @@ int Administrator::resetCustomerPassword(const std::string& targetAccount, const
     infile.close();
 
     if (!found) {
-        return 1; // 璐︽埛鍚嶄笉瀛樺湪
+        return 1; // 账户名不存在
     }
 
     std::ofstream outfile("customers.txt");
@@ -75,7 +76,15 @@ int Administrator::resetCustomerPassword(const std::string& targetAccount, const
         }
         outfile.close();
     } else {
-        return -1; // 鏂囦欢鎿嶄綔澶辫触
+        return -1; // 文件操作失败
     }
-    return 0; // 淇敼鎴愬姛
+    return 0; // 修改成功
 }    
+
+bool Administrator::setOrderStatus(Order& order, OrderStatus newStatus) {
+    if (order.status < newStatus) {
+        order.updateStatus(newStatus);
+        return true;
+    }
+    return false;
+}

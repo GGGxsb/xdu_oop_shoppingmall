@@ -7,6 +7,7 @@
 #define ADMINISTRATOR_H
 
 #include <string>
+#include "order.h"
 
 class Administrator {
 private:
@@ -17,6 +18,7 @@ public:
     bool login(const std::string& inputAccount, const std::string& inputPassword);
     bool deleteCustomer(const std::string& targetAccount);
     int resetCustomerPassword(const std::string& targetAccount, const std::string& oldPassword, const std::string& newPassword);
+    bool setOrderStatus(Order& order, OrderStatus newStatus);
 };
 
 #endif

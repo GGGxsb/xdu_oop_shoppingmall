@@ -39,7 +39,7 @@ void ProductManager::saveToFile() {
         }
         outfile.close();
     } else {
-        std::cout << "鏃犳硶鎵撳紑鏂囦欢淇濆瓨鍟嗗搧淇℃伅" << std::endl;
+        std::cout << "无法打开文件保存商品信息" << std::endl;
     }
 }
 
@@ -83,6 +83,18 @@ bool ProductManager::deleteProduct(const std::string& targetName) {
     for (auto it = products.begin(); it != products.end(); ++it) {
         if (it->name == targetName) {
             products.erase(it);
+            saveToFile();
+            return true;
+        }
+    }
+    return false;
+
+}
+// 新增方法实现
+bool ProductManager::increaseStock(const std::string& productName, int quantity) {
+    for (auto& product : products) {
+        if (product.name == productName) {
+            product.stock += quantity;
             saveToFile();
             return true;
         }

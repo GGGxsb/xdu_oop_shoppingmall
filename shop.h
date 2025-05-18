@@ -8,7 +8,9 @@
 #include <vector>
 #include "products.h"
 
-// è´­ç‰©è½¦ä¸­çš„å•†å“é¡¹ç±»
+ class Order;
+
+// ¹ºÎï³µÖĞµÄÉÌÆ·ÏîÀà
 class CartItem {
 public:
     Product product;
@@ -27,7 +29,9 @@ public:
     bool removeFromCart(const std::string& productName, int quantity = 1);
     bool modifyQuantity(const std::string& productName, int newQuantity);
     void queryCartInfo();
-    bool purchase();
+    // bool purchase(const std::string& shippingAddress);
+    Order purchase(const std::string& shippingAddress);
+    const std::vector<CartItem>& getItems() const;
 };
 
 #endif
