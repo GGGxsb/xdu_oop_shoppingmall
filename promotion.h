@@ -7,92 +7,119 @@
 
 #include <string>
 #include <ctime>
+#include <iostream>
 
-// è®¢å•ç±»å‰ç½®å£°æ˜
+// ×Ô¶¨ÒåÈÕÆÚ½á¹¹Ìå£¬Ö»°üº¬ÄêÔÂÈÕ
+struct Date {
+    int year;
+    int month;
+    int day;
+
+    // ÈÕÆÚ±È½Ïº¯Êı
+    bool operator<=(const Date& other) const {
+        if (year < other.year) return true;
+        if (year > other.year) return false;
+        if (month < other.month) return true;
+        if (month > other.month) return false;
+        return day <= other.day;
+    }
+
+    bool operator>=(const Date& other) const {
+        return other <= *this;
+    }
+    // ÖØÔØÊäÈëÔËËã·û
+    friend std::istream& operator>>(std::istream& is, Date& date) {
+        std::cout << "ÇëÊäÈëÄê·İ: ";
+        is >> date.year;
+        std::cout << "ÇëÊäÈëÔÂ·İ: ";
+        is >> date.month;
+        std::cout << "ÇëÊäÈëÈÕÆÚ: ";
+        is >> date.day;
+
+        // ¼òµ¥ÑéÖ¤ÈÕÆÚÓĞĞ§ĞÔ
+        if (date.month < 1 || date.month > 12 || date.day < 1 || date.day > 31) {
+            std::cerr << "¾¯¸æ: ÊäÈëµÄÈÕÆÚ¿ÉÄÜÎŞĞ§£¬Çë¼ì²é!" << std::endl;
+        }
+
+        return is;
+    }
+
+    // ÖØÔØÊä³öÔËËã·û£¬·½±ã´òÓ¡ÈÕÆÚ
+    friend std::ostream& operator<<(std::ostream& os, const Date& date) {
+        os << date.year << "-" << date.month << "-" << date.day;
+        return os;
+    }
+};
+
+// ¶©µ¥ÀàÇ°ÖÃÉùÃ÷
 class Order;
-// å•†å“ç±»å‰ç½®å£°æ˜
+// ÉÌÆ·ÀàÇ°ÖÃÉùÃ÷
 class Product;
 
-// ä¿ƒé”€æ´»åŠ¨æŠ½è±¡åŸºç±»
+// ´ÙÏú»î¶¯³éÏó»ùÀà
 class Promotion {
 protected:
-    // std::time_t startTime;
-    // std::time_t endTime;
     std::string productName;
+    Date startTime;
+    Date endTime;
 
 public:
-    // Promotion(const std::string& productName, std::time_t startTime, std::time_t endTime)
-    //     : productName(productName), startTime(startTime), endTime(endTime) {}
-    Promotion(const std::string& productName)
-       : productName(productName) {}
+    Promotion(const std::string& productName, const Date& startTime, const Date& endTime)
+        : productName(productName), startTime(startTime), endTime(endTime) {}
 
     virtual ~Promotion() = default;
 
-    // åˆ¤æ–­ä¿ƒé”€æ´»åŠ¨æ˜¯å¦åœ¨æœ‰æ•ˆæœŸå†…
-    // bool isActive() const {
-    //     std::time_t now = std::time(nullptr);
-    //     return now >= startTime && now <= endTime;
-    // }
+    // ÅĞ¶Ï´ÙÏú»î¶¯ÊÇ·ñÔÚÓĞĞ§ÆÚÄÚ
+    bool isActive(const Date& today) const {
+        return today >= startTime && today <= endTime;
+    }
 
-    // åº”ç”¨ä¿ƒé”€æ´»åŠ¨åˆ°è®¢å•
-    virtual double apply(double currentTotal, const Order& order) const = 0;
+    // Ó¦ÓÃ´ÙÏú»î¶¯µ½¶©µ¥
+    virtual double apply(double currentTotal, const Order& order, const Date& today) const = 0;
 
-    // è·å–å•†å“åç§°
+    // »ñÈ¡ÉÌÆ·Ãû³Æ
     std::string getProductName() const {
         return productName;
     }
-
-    // // è·å–å¼€å§‹æ—¶é—´
-    // std::time_t getStartTime() const {
-    //     return startTime;
-    // }
-    //
-    // // è·å–ç»“æŸæ—¶é—´
-    // std::time_t getEndTime() const {
-    //     return endTime;
-    // }
 };
 
-// é™æ—¶æŠ˜æ‰£ä¿ƒé”€æ´»åŠ¨ç±»
+// ÏŞÊ±ÕÛ¿Û´ÙÏú»î¶¯Àà
 class DiscountPromotion : public Promotion {
 private:
     double discount;
 
 public:
-    // ä¿®æ”¹æ„é€ å‡½æ•°
-    DiscountPromotion(const std::string& productName, double discount)
-        : Promotion(productName), discount(discount) {}
+    DiscountPromotion(const std::string& productName, double discount, const Date& startTime, const Date& endTime)
+        : Promotion(productName, startTime, endTime), discount(discount) {}
 
-    // åº”ç”¨æŠ˜æ‰£åˆ°è®¢å•
-    double apply(double currentTotal, const Order& order) const override;
+    // Ó¦ÓÃÕÛ¿Ûµ½¶©µ¥
+    double apply(double currentTotal, const Order& order, const Date& today) const override;
 
-    // è·å–æŠ˜æ‰£ç‡
+    // »ñÈ¡ÕÛ¿ÛÂÊ
     double getDiscount() const {
         return discount;
     }
 };
 
-// æ»¡å‡ä¿ƒé”€æ´»åŠ¨ç±»
+// Âú¼õ´ÙÏú»î¶¯Àà
 class FullReductionPromotion : public Promotion {
 private:
     double fullAmount;
     double reductionAmount;
 
 public:
-    // FullReductionPromotion(const std::string& productName, std::time_t startTime, std::time_t endTime, double fullAmount, double reductionAmount)
-    //     : Promotion(productName, startTime, endTime), fullAmount(fullAmount), reductionAmount(reductionAmount) {}
-    FullReductionPromotion(const std::string& productName, double fullAmount, double reductionAmount)
-        : Promotion(productName), fullAmount(fullAmount), reductionAmount(reductionAmount) {}
+    FullReductionPromotion(const std::string& productName, double fullAmount, double reductionAmount, const Date& startTime, const Date& endTime)
+        : Promotion(productName, startTime, endTime), fullAmount(fullAmount), reductionAmount(reductionAmount) {}
 
-    // åº”ç”¨æ»¡å‡åˆ°è®¢å•
-    double apply(double currentTotal, const Order& order) const override;
+    // Ó¦ÓÃÂú¼õµ½¶©µ¥
+    double apply(double currentTotal, const Order& order, const Date& today) const override;
 
-    // è·å–æ»¡å‡é—¨æ§›é‡‘é¢
+    // »ñÈ¡Âú¼õÃÅ¼÷½ğ¶î
     double getFullAmount() const {
         return fullAmount;
     }
 
-    // è·å–æ»¡å‡é‡‘é¢
+    // »ñÈ¡Âú¼õ½ğ¶î
     double getReductionAmount() const {
         return reductionAmount;
     }

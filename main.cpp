@@ -54,7 +54,7 @@ int main() {
         }
     });
     autoUpdateThread.detach();
-
+    Date today = {2025, 5, 25};
     while (!exit) {
         if (!adminLoggedIn && !customerLoggedIn) {
             std::cout << "1. 管理员登录\n"
@@ -391,7 +391,7 @@ int main() {
                     std::cout << "请输入收货地址: ";
                     std::cin.ignore(); // 清除缓冲区
                     std::getline(std::cin, addr);
-                    customer.purchase(addr);
+                    customer.purchase(addr,today);
                     std::cout << "订单创建成功" << std::endl;
                 }
                 // else if (adminLoggedIn) {
@@ -401,19 +401,18 @@ int main() {
                 else if (adminLoggedIn) {
                     std::string productName;
                     double discount;
-                    std::time_t startTime, endTime;
+                    Date startTime, endTime;
 
                     std::cout << "请输入参与活动的商品名称: ";
                     std::cin >> productName;
                     std::cout << "请输入折扣率（如0.8表示8折）: ";
                     std::cin >> discount;
-                    // std::cout << "请输入活动开始时间（秒级时间戳）: ";
-                    // std::cin >> startTime;
-                    // std::cout << "请输入活动结束时间（秒级时间戳）: ";
-                    // std::cin >> endTime;
+                    std::cout << "请输入活动开始时间: ";
+                    std::cin >> startTime;
+                    std::cout << "请输入活动结束时间: ";
+                    std::cin >> endTime;
 
-                    //Promotion* promotion = new DiscountPromotion(productName, startTime, endTime, discount);
-                    Promotion* promotion = new DiscountPromotion(productName, discount);
+                    Promotion* promotion = new DiscountPromotion(productName,discount,startTime,endTime );
                     productManager.addPromotion(promotion);
                     std::cout << "限时折扣促销活动添加成功" << std::endl;
                     break;
@@ -460,7 +459,7 @@ int main() {
                 else if (adminLoggedIn) {
                     std::string productName;
                     double fullAmount, reductionAmount;
-                    //std::time_t startTime, endTime;
+                    Date startTime, endTime;
 
                     std::cout << "请输入参与活动的商品名称: ";
                     std::cin >> productName;
@@ -468,13 +467,12 @@ int main() {
                     std::cin >> fullAmount;
                     std::cout << "请输入满减金额: ";
                     std::cin >> reductionAmount;
-                    // std::cout << "请输入活动开始时间（秒级时间戳）: ";
-                    // std::cin >> startTime;
-                    // std::cout << "请输入活动结束时间（秒级时间戳）: ";
-                    // std::cin >> endTime;
+                    std::cout << "请输入活动开始时间: ";
+                    std::cin >> startTime;
+                    std::cout << "请输入活动结束时间: ";
+                    std::cin >> endTime;
 
-                    //Promotion* promotion = new FullReductionPromotion(productName, startTime, endTime, fullAmount, reductionAmount);
-                    Promotion* promotion = new FullReductionPromotion(productName, fullAmount, reductionAmount);
+                    Promotion* promotion = new FullReductionPromotion(productName, fullAmount, reductionAmount,startTime,endTime);
                     productManager.addPromotion(promotion);
                     std::cout << "满减促销活动添加成功" << std::endl;
                     break;
@@ -502,7 +500,7 @@ int main() {
                                 customer.addToCart(selectedProduct.name, quantity);
                                 std::cout << "请输入收货地址: " << std::endl;
                                 std::cin >> shippingAddress;
-                                customer.purchase(shippingAddress);
+                                customer.purchase(shippingAddress,today);
                             } else {
                                 std::cout << "商品库存不足，无法进行购买" << std::endl;
                             }

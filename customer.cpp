@@ -236,7 +236,7 @@ void Customer::queryShoppingInfo() {
 //     }
 // }
 
-void Customer::purchase(const std::string& shippingAddress) {
+void Customer::purchase(const std::string& shippingAddress, const Date& today) {
     if (isLoggedIn) {
         Order order = shoppingCart.purchase(shippingAddress);
         if (!order.orderId.empty()) {
@@ -245,7 +245,7 @@ void Customer::purchase(const std::string& shippingAddress) {
                 auto productPromotions = productManager.getPromotionsForProduct(item.product.name);
                 promotions.insert(promotions.end(), productPromotions.begin(), productPromotions.end());
             }
-            order.applyPromotions(promotions); // 应用促销活动
+            order.applyPromotions(promotions, today); // 应用促销活动
 
             addOrder(order);
             saveOrdersToFile(); // 保存订单

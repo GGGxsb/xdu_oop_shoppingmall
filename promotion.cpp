@@ -6,7 +6,10 @@
 #include "products.h"
 
 // 应用折扣到订单
-double DiscountPromotion::apply(double currentTotal, const Order& order) const {
+double DiscountPromotion::apply(double currentTotal, const Order& order, const Date& today) const {
+    if (!isActive(today)) {
+        return currentTotal;
+    }
     double productOriginalTotal = 0.0;
     // 计算目标商品的原始总金额
     for (const auto& item : order.items) {
@@ -20,7 +23,10 @@ double DiscountPromotion::apply(double currentTotal, const Order& order) const {
     return currentTotal - (productOriginalTotal - discountedProductTotal);
 }
 
-double FullReductionPromotion::apply(double currentTotal, const Order& order) const {
+double FullReductionPromotion::apply(double currentTotal, const Order& order, const Date& today) const {
+    if (!isActive(today)) {
+        return currentTotal;
+    }
     if (currentTotal >= fullAmount) {
         return currentTotal - reductionAmount;  // 满减基于当前总价
     }

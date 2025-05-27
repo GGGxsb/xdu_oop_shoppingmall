@@ -17,7 +17,6 @@ enum OrderStatus {
 // 订单类
 class Order {
 public:
-    //static std ::vector<Order> orders;  // 添加 orders 容器
     std::string orderId;
     std::vector<CartItem> items;
     std::time_t purchaseTime;
@@ -47,10 +46,10 @@ public:
         status = newStatus;
     }
     // 应用促销活动到订单（计算但不保存结果）
-    double calculatePromotedPrice(const std::vector<Promotion*>& promotions) const;
+    double calculatePromotedPrice(const std::vector<Promotion*>& promotions, const Date& today) const;
 
     // 应用促销活动并保存结果
-    void applyPromotions(const std::vector<Promotion*>& promotions);
+    void applyPromotions(const std::vector<Promotion*>& promotions, const Date& today);
 
 };
 

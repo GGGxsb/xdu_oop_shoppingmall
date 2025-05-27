@@ -28,7 +28,7 @@ public:
     bool login(const std::string& inputAccount, const std::string& inputPassword);
     int changePassword(const std::string& targetAccount, const std::string& oldPassword, const std::string& newPassword);
     void queryShoppingInfo();
-    void purchase(const std::string& shippingAddress);
+    void purchase(const std::string& shippingAddress, const Date& today);
     //void addToCart(const std::string& productName);
     void addToCart(const std::string& productName, int quantity = 1);
     void removeFromCart(const std::string& productName, int quantity = 1);
