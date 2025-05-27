@@ -11,9 +11,16 @@
 void autoUpdateOrderStatus(std::vector<Order>& orders, int seconds) {
     std::time_t now = std::time(nullptr);
     for (auto& order : orders) {
+        // 打印调试日志
+        // std::cout << "订单 " << order.orderId
+        //           << "：创建时间=" << order.purchaseTime
+        //           << "，当前时间=" << now
+        //           << "，差值=" << (now - order.purchaseTime) << "秒" << std::endl;
+
         if (order.status == PENDING_SHIPMENT && (now - order.purchaseTime) >= seconds) {
             order.status = SHIPPED;
             std::cout << "订单 " << order.orderId << " 已自动转换为已发货状态。" << std::endl;
+            Customer::saveOrdersToFile();
         }
     }
 }
@@ -34,11 +41,15 @@ int main() {
     bool customerLoggedIn = false;
     bool adminLoggedIn = false;
 
-    // 启动一个线程来处理自动状态转换
+    const int checkInterval = 1;       // 检查间隔：每1秒检查一次订单
+    const int triggerSeconds = 10;     // 触发条件：订单创建10秒后发货
+
+
     std::thread autoUpdateThread([&]() {
-        const int checkInterval = 100000;
         while (true) {
-            autoUpdateOrderStatus(Customer::getOrders(), checkInterval);
+            // 传入触发条件 triggerSeconds（10秒）
+            autoUpdateOrderStatus(Customer::getOrders(), triggerSeconds);
+            // 线程休眠检查间隔 checkInterval（1秒）
             std::this_thread::sleep_for(std::chrono::seconds(checkInterval));
         }
     });
@@ -61,9 +72,11 @@ int main() {
                       << "4. 精确查询商品信息\n"
                       << "5. 模糊查询商品信息\n"
                       << "6. 删除商品信息\n"
-                      << "7. 手动设置订单状态\n"
-                      << "8. 退出管理员登录\n"
-                      << "9. 退出系统\n"
+                      << "7. 手动修改订单状态\n"
+                      << "8. 添加限时折扣促销活动\n"  // 新增：添加限时折扣促销活动
+                      << "9. 添加满减促销活动\n"      // 新增：添加满减促销活动
+                      << "10. 退出管理员登录\n"
+                      << "11. 退出系统\n"
                       << "请选择: ";
         } else if (customerLoggedIn) {
             std::cout << "1. 修改用户密码\n"
@@ -76,9 +89,9 @@ int main() {
                       << "8. 结算购物车中的商品\n"
                       << "9. 查看商品列表\n"
                       << "10. 从商品列表选择商品购买\n"
-                      << "11. **查询订单**\n"
-                      << "12. **修改订单（取消或更改地址）**\n"
-                      << "13. **删除已收货状态的订单**\n"
+                      << "11. 查询订单\n"
+                      << "12. 修改订单（取消或更改地址）\n"
+                      << "13. 删除已收货状态的订单\n"
                       << "14. 退出用户登录\n"
                       << "15. 退出系统\n"
                       << "请选择: ";
@@ -296,8 +309,26 @@ int main() {
                     if (products.empty()) {
                         std::cout << "暂无商品信息" << std::endl;
                     } else {
+                        std::cout << "商品列表:" << std::endl;
                         for (size_t i = 0; i < products.size(); ++i) {
-                            std::cout << i + 1 << ". " << products[i].name << " - " << products[i].price << " 元 - 库存: " << products[i].stock << std::endl;
+                            // 获取商品促销标签
+                            std::string promotionLabel = productManager.getProductPromotionLabel(products[i].name);
+
+                            // 获取商品促销活动
+                            auto promotions = productManager.getPromotionsForProduct(products[i].name);
+
+                            // 计算促销后价格
+                            double promotedPrice = products[i].calculatePromotedPrice(promotions);
+
+                            std::cout << i + 1 << ". " << products[i].name
+                                      << " - 原价:" << products[i].price
+                                      << " 元" << promotionLabel;
+
+                            if (promotedPrice < products[i].price) {
+                                std::cout << " 促销价:" << promotedPrice << " 元";
+                            }
+
+                            std::cout << " - 库存: " << products[i].stock << std::endl;
                         }
                     }
                 } else if (adminLoggedIn) {
@@ -362,27 +393,91 @@ int main() {
                     std::getline(std::cin, addr);
                     customer.purchase(addr);
                     std::cout << "订单创建成功" << std::endl;
-                } else if (adminLoggedIn) {
-                    std::cout << "退出管理员登录" << std::endl;
-                    adminLoggedIn = false;
+                }
+                // else if (adminLoggedIn) {
+                //     std::cout << "退出管理员登录" << std::endl;
+                //     adminLoggedIn = false;
+                //}
+                else if (adminLoggedIn) {
+                    std::string productName;
+                    double discount;
+                    std::time_t startTime, endTime;
+
+                    std::cout << "请输入参与活动的商品名称: ";
+                    std::cin >> productName;
+                    std::cout << "请输入折扣率（如0.8表示8折）: ";
+                    std::cin >> discount;
+                    // std::cout << "请输入活动开始时间（秒级时间戳）: ";
+                    // std::cin >> startTime;
+                    // std::cout << "请输入活动结束时间（秒级时间戳）: ";
+                    // std::cin >> endTime;
+
+                    //Promotion* promotion = new DiscountPromotion(productName, startTime, endTime, discount);
+                    Promotion* promotion = new DiscountPromotion(productName, discount);
+                    productManager.addPromotion(promotion);
+                    std::cout << "限时折扣促销活动添加成功" << std::endl;
+                    break;
                 }
                 break;
             }
             case 9: {
                 if (customerLoggedIn) {
-                    const auto& products = productManager.getProducts();
-                    if (products.empty()) {
-                        std::cout << "暂无商品信息" << std::endl;
-                    } else {
-                        for (size_t i = 0; i < products.size(); ++i) {
-                            std::cout << i + 1 << ". " << products[i].name << " - " << products[i].price << " 元 - 库存: " << products[i].stock << std::endl;
-                        }
-                    }
-                } else if (adminLoggedIn) {
-                    // 退出系统前保存订单
-                    Customer::saveOrdersToFile();
-                    std::cout << "订单信息已保存，系统退出" << std::endl;
-                    exit = 1;
+                    // const auto& products = productManager.getProducts();
+                    // if (products.empty()) {
+                    //     std::cout << "暂无商品信息" << std::endl;
+                    // } else {
+                    //     std::cout << "商品列表:" << std::endl;
+                    //     for (size_t i = 0; i < products.size(); ++i) {
+                    //         // 获取商品促销标签
+                    //         std::string promotionLabel = productManager.getProductPromotionLabel(products[i].name);
+                    //
+                    //         // 获取商品促销活动
+                    //         auto promotions = productManager.getPromotionsForProduct(products[i].name);
+                    //
+                    //         // 计算促销后价格
+                    //         double promotedPrice = products[i].calculatePromotedPrice(promotions);
+                    //
+                    //         std::cout << i + 1 << ". " << products[i].name
+                    //                   << " - 原价:" << products[i].price
+                    //                   << " 元" << promotionLabel;
+                    //
+                    //         if (promotedPrice < products[i].price) {
+                    //             std::cout << " 促销价:" << promotedPrice << " 元";
+                    //         }
+                    //
+                    //         std::cout << " - 库存: " << products[i].stock << std::endl;
+                    //     }
+                    // }
+                    productManager.printProductInfo();
+                }
+                // else if (adminLoggedIn) {
+                //     // 退出系统前保存订单
+                //     Customer::saveOrdersToFile();
+                //     std::cout << "订单信息已保存，系统退出" << std::endl;
+                //     exit = 1;
+                // }
+                // break;
+                else if (adminLoggedIn) {
+                    std::string productName;
+                    double fullAmount, reductionAmount;
+                    //std::time_t startTime, endTime;
+
+                    std::cout << "请输入参与活动的商品名称: ";
+                    std::cin >> productName;
+                    std::cout << "请输入满减门槛金额: ";
+                    std::cin >> fullAmount;
+                    std::cout << "请输入满减金额: ";
+                    std::cin >> reductionAmount;
+                    // std::cout << "请输入活动开始时间（秒级时间戳）: ";
+                    // std::cin >> startTime;
+                    // std::cout << "请输入活动结束时间（秒级时间戳）: ";
+                    // std::cin >> endTime;
+
+                    //Promotion* promotion = new FullReductionPromotion(productName, startTime, endTime, fullAmount, reductionAmount);
+                    Promotion* promotion = new FullReductionPromotion(productName, fullAmount, reductionAmount);
+                    productManager.addPromotion(promotion);
+                    std::cout << "满减促销活动添加成功" << std::endl;
+                    break;
                 }
                 break;
             }
@@ -394,9 +489,7 @@ int main() {
                         std::cout << "暂无商品信息，无法进行购买" << std::endl;
                     } else {
                         std::cout << "商品列表如下:" << std::endl;
-                        for (size_t i = 0; i < products.size(); ++i) {
-                            std::cout << i + 1 << ". " << products[i].name << " - " << products[i].price << " 元 - 库存: " << products[i].stock << std::endl;
-                        }
+                        productManager.printProductInfo();
                         int productIndex;
                         int quantity;
                         std::cout << "请输入需要购买的商品序号: ";
@@ -418,12 +511,22 @@ int main() {
                         }
                     }
                 }
+                else if (adminLoggedIn) {
+                    std::cout << "退出管理员登录" << std::endl;
+                    adminLoggedIn = false;
+                }
                 break;
             }
             case 11: {
                 // **查询订单**
                 if (customerLoggedIn) {
                     customer.queryOrders();
+                }
+                else if (adminLoggedIn) {
+                    // 退出系统前保存订单
+                    Customer::saveOrdersToFile();
+                    std::cout << "订单信息已保存，系统退出" << std::endl;
+                    exit = 1;
                 }
                 break;
             }
@@ -487,6 +590,10 @@ int main() {
             default:
                 std::cout << "无效选择，请重新输入" << std::endl;
         }
+    }
+
+    for (auto promotion : productManager.getPromotions()) {
+        delete promotion;
     }
     return 0;
 }

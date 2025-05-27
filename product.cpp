@@ -3,6 +3,16 @@
 #include <sstream>
 #include <iostream>
 
+double Product::calculatePromotedPrice(const std::vector<Promotion*>& promotions) const {
+    double price = this->price;
+    for (auto promo : promotions) {
+        if (auto discount = dynamic_cast<DiscountPromotion*>(promo)) {
+            price *= discount->getDiscount();
+        }
+        // 不考虑满减，因为满减是基于订单总价的
+    }
+    return price;
+}
 ProductManager::ProductManager() {
     loadFromFile();
 }
@@ -90,7 +100,6 @@ bool ProductManager::deleteProduct(const std::string& targetName) {
     return false;
 
 }
-// 新增方法实现
 bool ProductManager::increaseStock(const std::string& productName, int quantity) {
     for (auto& product : products) {
         if (product.name == productName) {
@@ -100,4 +109,47 @@ bool ProductManager::increaseStock(const std::string& productName, int quantity)
         }
     }
     return false;
+}
+// 新增：添加促销活动
+void ProductManager::addPromotion(Promotion* promotion) {
+    promotions.push_back(promotion);
+}
+// 新增：获取商品的促销活动
+std::vector<Promotion*> ProductManager::getPromotionsForProduct(const std::string& productName) const {
+    std::vector<Promotion*> productPromotions;
+    for (auto promotion : promotions) {
+        if (promotion->getProductName() == productName
+            //&& promotion->isActive()
+            ) {
+            productPromotions.push_back(promotion);
+        }
+    }
+    return productPromotions;
+}
+const std::vector<Promotion*>& ProductManager::getPromotions() const {
+    return promotions;
+}
+std::string ProductManager::getProductPromotionLabel(const std::string& productName) const {
+    std::string label;
+    auto promotions = getPromotionsForProduct(productName);
+
+    for (auto promo : promotions) {
+        if (auto discount = dynamic_cast<DiscountPromotion*>(promo)) {
+            label += " [折扣:" + std::to_string(static_cast<int>(discount->getDiscount() * 10)) + "折]";
+        } else if (auto fullReduction = dynamic_cast<FullReductionPromotion*>(promo)) {
+            label += " [满" + std::to_string(fullReduction->getFullAmount()) + "减" +
+                     std::to_string(fullReduction->getReductionAmount()) + "]";
+        }
+    }
+
+    return label;
+}
+
+void ProductManager::printProductInfo() {
+    const auto& products = getProducts();
+    std::cout << "商品列表:" << std::endl;
+    for (size_t i = 0; i < products.size(); ++i) {
+        std::string label = getProductPromotionLabel(products[i].name);
+        std::cout << i + 1 << ". " << products[i].name << " - 原价:" << products[i].price << " 元 - 库存: " << products[i].stock << label << std::endl;
+    }
 }

@@ -22,6 +22,7 @@ public:
     std::vector<CartItem> items;
     std::time_t purchaseTime;
     double totalPrice = 0;
+    double promotedTotalPrice = 0; // 新增：保存促销后的总价
     std::string shippingAddress;
     OrderStatus status;
 
@@ -45,6 +46,12 @@ public:
     void updateStatus(OrderStatus newStatus) {
         status = newStatus;
     }
+    // 应用促销活动到订单（计算但不保存结果）
+    double calculatePromotedPrice(const std::vector<Promotion*>& promotions) const;
+
+    // 应用促销活动并保存结果
+    void applyPromotions(const std::vector<Promotion*>& promotions);
+
 };
 
 

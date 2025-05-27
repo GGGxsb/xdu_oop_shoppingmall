@@ -60,6 +60,11 @@ void Customer::loadOrdersFromFile() {
                 if (line.empty()) throw std::invalid_argument("总价为空");
                 double totalPrice = std::stod(line);
 
+                // 获取促销后总价
+                std::getline(infile, line);
+                if (line.empty()) throw std::invalid_argument("促销后总价为空");
+                double promotedTotalPrice = std::stod(line);
+
                 // 读取地址
                 std::getline(infile, line);
                 std::string shippingAddress = line;
@@ -75,6 +80,7 @@ void Customer::loadOrdersFromFile() {
                 Order order(orderId, items, shippingAddress);
                 order.purchaseTime = purchaseTime;
                 order.totalPrice = totalPrice;
+                order.promotedTotalPrice = promotedTotalPrice; // 加载促销后总价
                 order.status = status;
                 orders.push_back(order);
 
@@ -111,6 +117,9 @@ void Customer::saveOrdersToFile() {
 
             // 保存总价
             outfile << order.totalPrice << std::endl;
+
+            // 保存促销后总价
+            outfile << order.promotedTotalPrice << std::endl;
 
             // 保存收货地址
             outfile << order.shippingAddress << std::endl;
@@ -230,10 +239,19 @@ void Customer::queryShoppingInfo() {
 void Customer::purchase(const std::string& shippingAddress) {
     if (isLoggedIn) {
         Order order = shoppingCart.purchase(shippingAddress);
-        if (!order.orderId.empty()) { // 检查订单有效性
+        if (!order.orderId.empty()) {
+            std::vector<Promotion*> promotions;
+            for (const auto& item : order.items) {
+                auto productPromotions = productManager.getPromotionsForProduct(item.product.name);
+                promotions.insert(promotions.end(), productPromotions.begin(), productPromotions.end());
+            }
+            order.applyPromotions(promotions); // 应用促销活动
+
             addOrder(order);
             saveOrdersToFile(); // 保存订单
-            std::cout << "订单生成成功，编号: " << order.orderId << std::endl;
+            std::cout << "订单创建成功，订单号: " << order.orderId << std::endl;
+            std::cout << "原价: " << order.totalPrice << " 元" << std::endl;
+            std::cout << "促销后价格: " << order.promotedTotalPrice << " 元" << std::endl;
         }
     } else {
         std::cout << "您未登录，请先登录再进行购买" << std::endl;
@@ -285,10 +303,8 @@ void Customer::queryOrders() {
             for (const auto& order : orders) {
                 std::cout << "订单编号: " << order.orderId << std::endl;
                 std::cout << "下单时间: " << std::ctime(&order.purchaseTime);
-                std::cout << "订单总价: " <<order.totalPrice << " 元" << std::endl;
-                // for (const auto& item : items) {
-                //     order.totalPrice += item.product.price * item.quantity;
-                // }
+                std::cout << "原价: " << order.totalPrice << " 元" << std::endl;
+                std::cout << "促销后价格: " << order.promotedTotalPrice << " 元" << std::endl;
                 std::cout << "收货地址: " << order.shippingAddress << std::endl;
                 std::cout << "订单状态: ";
                 switch (order.status) {
