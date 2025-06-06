@@ -7,6 +7,7 @@
     <file url="file://$PROJECT_DIR$/cmake-build-debug/orders.txt" charset="GBK" />
     <file url="file://$PROJECT_DIR$/cmake-build-debug/products.txt" charset="GBK" />
     <file url="file://$PROJECT_DIR$/cmake-build-debug/purchase_log.txt" charset="GBK" />
+    <file url="file://$PROJECT_DIR$/cmake-build-debug/shopping_cart.txt" charset="GBK" />
     <file url="file://$PROJECT_DIR$/customer.cpp" charset="GBK" />
     <file url="file://$PROJECT_DIR$/customer.h" charset="GBK" />
     <file url="file://$PROJECT_DIR$/fileio.cpp" charset="GBK" />

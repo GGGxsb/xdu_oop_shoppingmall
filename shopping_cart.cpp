@@ -7,6 +7,43 @@
 #include <fstream>
 #include <ctime>
 static double total = 0;
+
+void ShoppingCart::loadCartFromFile() {
+    std::ifstream infile("shopping_cart.txt");
+    if (infile.is_open()) {
+        std::string line;
+        while (std::getline(infile, line)) {
+            std::stringstream ss(line);
+            std::string productName;
+            double price;
+            int quantity;
+
+            // 读取商品名称、价格和数量
+            if (!std::getline(ss, productName, ',')) continue;
+            if (!(ss >> price)) continue;
+            ss.ignore();
+            if (!(ss >> quantity)) continue;
+
+            Product product(productName, price, 0);
+            items.emplace_back(product, quantity);
+        }
+        infile.close();
+    }
+}
+
+// 将购物车信息保存到文件中
+void ShoppingCart::saveCartToFile() {
+    std::ofstream outfile("shopping_cart.txt");
+    if (outfile.is_open()) {
+        for (const auto& item : items) {
+            outfile << item.product.name << ","
+                    << item.product.price << ","
+                    << item.quantity << std::endl;
+        }
+        outfile.close();
+    }
+}
+
 void ShoppingCart::addToCart(const Product& product, int quantity) {
     for (auto& item : items) {
         if (item.product.name == product.name) {
@@ -21,6 +58,7 @@ void ShoppingCart::addToCart(const Product& product, int quantity) {
                     std::cout << "商品 " << product.name << " 库存不足，无法增加购买数量。" << std::endl;
                 }
             }
+            saveCartToFile();  // 保存购物车信息到文件
             return;
         }
     }
@@ -30,6 +68,7 @@ void ShoppingCart::addToCart(const Product& product, int quantity) {
     } else {
         std::cout << "商品 " << product.name << " 库存不足，无法加入购物车。" << std::endl;
     }
+    saveCartToFile();  // 保存购物车信息到文件
 }
 
 bool ShoppingCart::removeFromCart(const std::string& productName, int quantity) {
@@ -42,6 +81,7 @@ bool ShoppingCart::removeFromCart(const std::string& productName, int quantity) 
                 it->quantity -= quantity;
                 std::cout << "商品 " << productName << " 的购买数量已减少为 " << it->quantity << "。" << std::endl;
             }
+            saveCartToFile();  // 保存购物车信息到文件
             return true;
         }
     }
@@ -161,7 +201,7 @@ Order ShoppingCart::purchase(const std::string& shippingAddress) {
 
     // 清空购物车
     items.clear();
-
+    saveCartToFile();  // 保存购物车信息到文件
     return order;
 }
 

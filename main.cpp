@@ -11,7 +11,7 @@
 void autoUpdateOrderStatus(std::vector<Order>& orders, int seconds) {
     std::time_t now = std::time(nullptr);
     for (auto& order : orders) {
-        // 打印调试日志
+        // 调试日志
         // std::cout << "订单 " << order.orderId
         //           << "：创建时间=" << order.purchaseTime
         //           << "，当前时间=" << now
@@ -28,10 +28,11 @@ void autoUpdateOrderStatus(std::vector<Order>& orders, int seconds) {
 int main() {
 
     Customer::loadOrdersFromFile();
+    // ShoppingCart::loadCartFromFile();
     const auto& orders = Customer::getOrders();
 
     // 预定义管理员账号密码
-    Administrator admin("admin", "admin123");
+    Administrator admin("admin", "7330");
 
     ProductManager productManager;
     Customer customer(productManager);
@@ -54,6 +55,7 @@ int main() {
         }
     });
     autoUpdateThread.detach();
+
     Date today = {2025, 5, 25};
     while (!exit) {
         if (!adminLoggedIn && !customerLoggedIn) {
@@ -92,8 +94,9 @@ int main() {
                       << "11. 查询订单\n"
                       << "12. 修改订单（取消或更改地址）\n"
                       << "13. 删除已收货状态的订单\n"
-                      << "14. 退出用户登录\n"
-                      << "15. 退出系统\n"
+                      << "14. 分析购买数据\n" // 新增选项
+                      << "15. 退出用户登录\n"
+                      << "16. 退出系统\n"
                       << "请选择: ";
         }
 
@@ -394,10 +397,6 @@ int main() {
                     customer.purchase(addr,today);
                     std::cout << "订单创建成功" << std::endl;
                 }
-                // else if (adminLoggedIn) {
-                //     std::cout << "退出管理员登录" << std::endl;
-                //     adminLoggedIn = false;
-                //}
                 else if (adminLoggedIn) {
                     std::string productName;
                     double discount;
@@ -421,41 +420,8 @@ int main() {
             }
             case 9: {
                 if (customerLoggedIn) {
-                    // const auto& products = productManager.getProducts();
-                    // if (products.empty()) {
-                    //     std::cout << "暂无商品信息" << std::endl;
-                    // } else {
-                    //     std::cout << "商品列表:" << std::endl;
-                    //     for (size_t i = 0; i < products.size(); ++i) {
-                    //         // 获取商品促销标签
-                    //         std::string promotionLabel = productManager.getProductPromotionLabel(products[i].name);
-                    //
-                    //         // 获取商品促销活动
-                    //         auto promotions = productManager.getPromotionsForProduct(products[i].name);
-                    //
-                    //         // 计算促销后价格
-                    //         double promotedPrice = products[i].calculatePromotedPrice(promotions);
-                    //
-                    //         std::cout << i + 1 << ". " << products[i].name
-                    //                   << " - 原价:" << products[i].price
-                    //                   << " 元" << promotionLabel;
-                    //
-                    //         if (promotedPrice < products[i].price) {
-                    //             std::cout << " 促销价:" << promotedPrice << " 元";
-                    //         }
-                    //
-                    //         std::cout << " - 库存: " << products[i].stock << std::endl;
-                    //     }
-                    // }
                     productManager.printProductInfo();
                 }
-                // else if (adminLoggedIn) {
-                //     // 退出系统前保存订单
-                //     Customer::saveOrdersToFile();
-                //     std::cout << "订单信息已保存，系统退出" << std::endl;
-                //     exit = 1;
-                // }
-                // break;
                 else if (adminLoggedIn) {
                     std::string productName;
                     double fullAmount, reductionAmount;
@@ -569,18 +535,26 @@ int main() {
                 break;
             }
             case 14: {
-                // 退出用户登录
                 if (customerLoggedIn) {
-                    customerLoggedIn = false;
-                    std::cout << "已退出用户登录" << std::endl;
+                    customer.analyzePurchaseData();
                 }
                 break;
             }
             case 15: {
-                // 退出系统前保存订单
+                if (customerLoggedIn) {
+                    customerLoggedIn = false;
+                    std::cout << "已退出用户登录" << std::endl;
+                } else if (adminLoggedIn) {
+                    adminLoggedIn = false;
+                    std::cout << "已退出管理员登录" << std::endl;
+                }
+                break;
+            }
+            case 16: {
                 if (customerLoggedIn || adminLoggedIn) {
-                    Customer::saveOrdersToFile();
-                    std::cout << "订单信息已保存，系统退出" << std::endl;
+                    std::cout << "已退出登录并退出系统" << std::endl;
+                } else {
+                    std::cout << "已退出系统" << std::endl;
                 }
                 exit = 1;
                 break;

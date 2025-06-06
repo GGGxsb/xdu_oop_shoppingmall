@@ -8,8 +8,16 @@
 #define CUSTOMER_H
 
 #include <string>
+#include <map>
 #include "shop.h"
 #include "order.h"
+
+struct CategoryStats {
+    double totalAmount = 0.0;
+    int purchaseFrequency = 0;
+    std::map<std::string, double> productAmounts; // 商品名称 -> 购买金额
+    std::map<std::string, int> productFrequencies; // 商品名称 -> 购买次数
+};
 
 class Customer {
 private:
@@ -43,6 +51,7 @@ public:
     static std::vector<Order>& getOrders() {
         return orders;
     }
+    void analyzePurchaseData() const;
 };
 
 #endif

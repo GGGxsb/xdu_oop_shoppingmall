@@ -23,8 +23,12 @@ class ShoppingCart {
 private:
     std::vector<CartItem> items;
     ProductManager& productManager;
+    void loadCartFromFile();  // 从文件中加载购物车信息
+    void saveCartToFile();    // 将购物车信息保存到文件中
 public:
-    ShoppingCart(ProductManager& pm) : productManager(pm) {}
+    ShoppingCart(ProductManager& pm) : productManager(pm) {
+        loadCartFromFile();  // 构造函数中加载购物车信息
+    }
     void addToCart(const Product& product, int quantity = 1);
     bool removeFromCart(const std::string& productName, int quantity = 1);
     bool modifyQuantity(const std::string& productName, int newQuantity);
@@ -32,6 +36,7 @@ public:
     // bool purchase(const std::string& shippingAddress);
     Order purchase(const std::string& shippingAddress);
     const std::vector<CartItem>& getItems() const;
+
 };
 
 #endif

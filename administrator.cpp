@@ -1,5 +1,6 @@
 
 #include "administrator.h"
+#include "customer.h"
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -84,6 +85,7 @@ int Administrator::resetCustomerPassword(const std::string& targetAccount, const
 bool Administrator::setOrderStatus(Order& order, OrderStatus newStatus) {
     if (order.status < newStatus) {
         order.updateStatus(newStatus);
+        Customer::saveOrdersToFile();
         return true;
     }
     return false;

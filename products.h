@@ -14,6 +14,7 @@ public:
     std::string name;
     double price;
     int stock;
+    std::string category; // 添加商品类别字段
 
     Product(const std::string& n, double p, int s) : name(n), price(p), stock(s) {}
     double calculatePromotedPrice(const std::vector<Promotion*>& promotions) const;

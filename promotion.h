@@ -6,7 +6,6 @@
 #define PROMOTION_H
 
 #include <string>
-#include <ctime>
 #include <iostream>
 
 // 自定义日期结构体，只包含年月日
@@ -44,16 +43,13 @@ struct Date {
         return is;
     }
 
-    // 重载输出运算符，方便打印日期
     friend std::ostream& operator<<(std::ostream& os, const Date& date) {
         os << date.year << "-" << date.month << "-" << date.day;
         return os;
     }
 };
 
-// 订单类前置声明
 class Order;
-// 商品类前置声明
 class Product;
 
 // 促销活动抽象基类
